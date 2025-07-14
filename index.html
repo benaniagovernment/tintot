@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TinToT</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+body {
+  font-family: 'Hind', Arial, sans-serif;
+  background: linear-gradient(135deg, #ececec, #fafafa);
+}
+
+.skeuo-panel {
+  background: linear-gradient(145deg, #fafafa, #ddd);
+  border: 1px solid #aaa;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  color: #222;
+  text-shadow: 1px 1px 1px rgba(255,255,255,0.5);
+  box-shadow: inset 1px 1px 2px rgba(255,255,255,0.6),
+              inset -1px -1px 2px rgba(0,0,0,0.1),
+              2px 2px 5px rgba(0,0,0,0.2);
+}
+
+.skeuo-panel-error {
+  background: linear-gradient(145deg, #ffe5e5, #f5cfcf);
+  border: 1px solid #c00;
+  color: #900;
+}
+
+.skeuo-btn {
+  background: linear-gradient(145deg, #ff4d4d, #cc0000);
+  border: 1px solid #900;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  box-shadow: inset 1px 1px 2px rgba(255,255,255,0.6),
+              inset -1px -1px 2px rgba(0,0,0,0.2),
+              2px 2px 5px rgba(0,0,0,0.3);
+}
+
+.skeuo-btn:hover {
+  background: linear-gradient(145deg, #e60000, #a00000);
+}
+</style>
+</head>
+
+<body class="min-h-screen flex flex-col text-black">
+
+<main class="flex-grow flex flex-col items-center justify-center space-y-6 px-4">
+  <h1 class="text-6xl font-extrabold text-center skeuo-panel">
+    TinToT
+  </h1>
+
+  <form onsubmit="performSearch(event)" class="w-full max-w-xl flex flex-col items-center space-y-2 skeuo-panel">
+    <div class="w-full flex items-center gap-2">
+      <input id="searchInput" aria-label="Search TinToT"
+        class="flex-grow h-12 px-4 text-black text-base skeuo-panel"
+        placeholder="Search TinToT" type="text" required />
+      <button type="submit" class="skeuo-btn">
+        <i class="fas fa-search"></i>
+      </button>
+    </div>
+    <p id="errorMessage" class="text-sm hidden skeuo-panel skeuo-panel-error text-center">
+      This search is not allowed.
+    </p>
+  </form>
+</main>
+
+<script>
+const allowedQueries = [
+  'example1',
+  'example2',
+  'allowed term',
+  'another one'
+];
+
+const blockedPatterns = [
+  'benania',
+  'country',
+  'rights',
+  'robb',
+  'government'
+];
+
+function performSearch(event) {
+  event.preventDefault();
+  const inputEl = document.getElementById('searchInput');
+  let query = inputEl.value.trim().toLowerCase();
+  const errorEl = document.getElementById('errorMessage');
+
+  const blocked = blockedPatterns.some(pattern => query.includes(pattern));
+  if (blocked) {
+    query = 'tintosh government';
+  }
+
+  if (!allowedQueries.includes(query) && query !== 'tintosh government') {
+    errorEl.textContent = `Search for "${query}" is not allowed.`;
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  errorEl.classList.add('hidden');
+  const searchURL = `https://sites.google.com/search/search-benania?query=${encodeURIComponent(query)}&scope=site&showCloudSearchTab=false`;
+  window.open(searchURL, '_blank');
+}
+</script>
+
+</body>
+</html>
