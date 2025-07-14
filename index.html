@@ -51,7 +51,7 @@ body {
 
 <body class="min-h-screen flex flex-col text-black">
 
-<main class="flex-grow flex flex-col items-center justify-center space-y-6 px-4">
+<main class="flex-grow flex flex-col items-center justify-center space-y-4 px-4">
   <h1 class="text-6xl font-extrabold text-center skeuo-panel">
     TinToT
   </h1>
@@ -69,17 +69,26 @@ body {
       This search is not allowed.
     </p>
   </form>
+
+  <button onclick="toggleSettings()" class="skeuo-btn mt-4">Settings</button>
+
+  <div id="settingsPanel" class="skeuo-panel p-4 mt-4 hidden flex flex-col space-y-2 w-full max-w-md">
+    <h2 class="text-xl font-semibold">Settings</h2>
+    <label class="flex items-center space-x-2">
+      <input type="checkbox" id="supervisedToggle" onchange="handleSupervisedToggle()" />
+      <span>Enable Supervised Mode</span>
+    </label>
+    <input type="password" id="supervisedPassword" placeholder="Set/Enter Password" class="skeuo-panel w-full" />
+    <p id="settingsError" class="text-sm text-red-600 hidden">Incorrect password.</p>
+  </div>
 </main>
 
 <script>
 const allowedQueries = [
-  'tintosh',
-  'tintot',
-  'library',
-  'find',
-  'leader',
-  'good leader',
-  'amazing leader'
+  'example1',
+  'example2',
+  'allowed term',
+  'another one'
 ];
 
 const blockedPatterns = [
@@ -87,16 +96,11 @@ const blockedPatterns = [
   'country',
   'rights',
   'robb',
-  'government',
-  'escape',
-  'freedom',
-  'unblock',
-  'method',
-  'politics',
-  'dumb',
-  'questions',
-  'glaze leader'
+  'government'
 ];
+
+let supervisedEnabled = false;
+let supervisedPassword = '';
 
 function performSearch(event) {
   event.preventDefault();
@@ -118,6 +122,35 @@ function performSearch(event) {
   errorEl.classList.add('hidden');
   const searchURL = `https://sites.google.com/search/search-benania?query=${encodeURIComponent(query)}&scope=site&showCloudSearchTab=false`;
   window.open(searchURL, '_blank');
+}
+
+function toggleSettings() {
+  const panel = document.getElementById('settingsPanel');
+  panel.classList.toggle('hidden');
+}
+
+function handleSupervisedToggle() {
+  const toggle = document.getElementById('supervisedToggle');
+  const passInput = document.getElementById('supervisedPassword');
+  const errMsg = document.getElementById('settingsError');
+
+  if (toggle.checked) {
+    // Enabling supervised
+    supervisedPassword = passInput.value.trim();
+    supervisedEnabled = true;
+    errMsg.classList.add('hidden');
+  } else {
+    // Disabling supervised
+    const entered = passInput.value.trim();
+    if (entered !== supervisedPassword || supervisedPassword === '') {
+      toggle.checked = true;
+      errMsg.classList.remove('hidden');
+    } else {
+      supervisedEnabled = false;
+      supervisedPassword = '';
+      errMsg.classList.add('hidden');
+    }
+  }
 }
 </script>
 
