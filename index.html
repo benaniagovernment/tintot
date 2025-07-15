@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>TinToT</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;600&display=swap" rel="stylesheet" />
 <style>
 body {
@@ -25,12 +24,6 @@ body {
               2px 2px 5px rgba(0,0,0,0.2);
 }
 
-.skeuo-panel-error {
-  background: linear-gradient(145deg, #ffe5e5, #f5cfcf);
-  border: 1px solid #c00;
-  color: #900;
-}
-
 .skeuo-btn {
   background: linear-gradient(145deg, #ff4d4d, #cc0000);
   border: 1px solid #900;
@@ -43,8 +36,29 @@ body {
               2px 2px 5px rgba(0,0,0,0.3);
 }
 
-.skeuo-btn:hover {
-  background: linear-gradient(145deg, #e60000, #a00000);
+#settingsPanel {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.95);
+  z-index: 50;
+  display: none;
+}
+
+#alertBanner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #000;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.25rem;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  text-align: center;
+  z-index: 9999;
+  display: none;
+  margin-inline: -8px;
 }
 </style>
 </head>
@@ -58,45 +72,45 @@ body {
 
   <form onsubmit="performSearch(event)" class="w-full max-w-xl flex flex-col items-center space-y-2 skeuo-panel">
     <div class="w-full flex items-center gap-2">
-      <input id="searchInput" aria-label="Search TinToT"
+      <input id="searchInput"
         class="flex-grow h-12 px-4 text-black text-base skeuo-panel"
         placeholder="Search TinToT" type="text" required />
-      <button type="submit" class="skeuo-btn">
-        <i class="fas fa-search"></i>
+      <button type="submit" id="searchButton" class="skeuo-btn">
+        Search
       </button>
     </div>
-    <p id="errorMessage" class="text-sm hidden skeuo-panel skeuo-panel-error text-center">
+    <p id="errorMessage" class="text-sm hidden skeuo-panel text-red-600 text-center">
       This search is not allowed.
     </p>
   </form>
 
-  <button onclick="toggleSettings()" class="skeuo-btn mt-4">Settings</button>
+  <button onclick="showSettings()" class="skeuo-btn mt-4">Settings</button>
 
-  <div id="settingsPanel" class="skeuo-panel p-4 mt-4 hidden flex flex-col space-y-2 w-full max-w-md">
-    <h2 class="text-xl font-semibold">Settings</h2>
+  <div id="settingsPanel" class="skeuo-panel flex flex-col justify-center items-center space-y-4">
+    <h2 class="text-2xl font-semibold">Settings</h2>
     <label class="flex items-center space-x-2">
       <input type="checkbox" id="supervisedToggle" onchange="handleSupervisedToggle()" />
       <span>Enable Supervised Mode</span>
     </label>
-    <input type="password" id="supervisedPassword" placeholder="Set/Enter Password" class="skeuo-panel w-full" />
-    <p id="settingsError" class="text-sm text-red-600 hidden">Incorrect password.</p>
+    <input type="password" id="supervisedPassword" placeholder="Enter Code" class="skeuo-panel w-64" />
+    <p id="settingsError" class="text-sm text-red-600 hidden">Code required or incorrect.</p>
+    <button onclick="hideSettings()" class="skeuo-btn">Close</button>
+  </div>
+
+  <div id="alertBanner">
+    Inappropriate search detected. Alerting authorities.
   </div>
 </main>
 
 <script>
 const allowedQueries = [
-  'example1',
-  'example2',
-  'allowed term',
-  'another one'
+  'example1', 'example2', 'allowed term', 'another one',
+  'tintosh', 'tintot', 'library', 'find', 'leader', 'good leader', 'amazing leader'
 ];
 
 const blockedPatterns = [
-  'benania',
-  'country',
-  'rights',
-  'robb',
-  'government'
+  'benania', 'country', 'rights', 'robb', 'government',
+  'escape', 'freedom', 'unblock', 'method', 'politics', 'dumb', 'questions', 'glaze leader'
 ];
 
 let supervisedEnabled = false;
@@ -104,16 +118,31 @@ let supervisedPassword = '';
 
 function performSearch(event) {
   event.preventDefault();
-  const inputEl = document.getElementById('searchInput');
-  let query = inputEl.value.trim().toLowerCase();
-  const errorEl = document.getElementById('errorMessage');
 
-  const blocked = blockedPatterns.some(pattern => query.includes(pattern));
-  if (blocked) {
-    query = 'tintosh government';
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const errorEl = document.getElementById('errorMessage');
+  const alertBanner = document.getElementById('alertBanner');
+  const searchInput = document.getElementById('searchInput');
+  const searchButton = document.getElementById('searchButton');
+
+  // If already blocked by banner → do nothing
+  if (alertBanner.style.display === 'block') return;
+
+  if (supervisedEnabled) {
+    for (let pattern of blockedPatterns) {
+      if (query.includes(pattern)) {
+        alertBanner.style.display = 'block';
+        errorEl.classList.add('hidden');
+        // disable search UI
+        searchInput.disabled = true;
+        searchButton.disabled = true;
+        searchButton.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+    }
   }
 
-  if (!allowedQueries.includes(query) && query !== 'tintosh government') {
+  if (!allowedQueries.includes(query)) {
     errorEl.textContent = `Search for "${query}" is not allowed.`;
     errorEl.classList.remove('hidden');
     return;
@@ -124,9 +153,14 @@ function performSearch(event) {
   window.open(searchURL, '_blank');
 }
 
-function toggleSettings() {
-  const panel = document.getElementById('settingsPanel');
-  panel.classList.toggle('hidden');
+function showSettings() {
+  document.getElementById('settingsPanel').style.display = 'flex';
+}
+
+function hideSettings() {
+  document.getElementById('settingsPanel').style.display = 'none';
+  document.getElementById('supervisedPassword').value = '';
+  document.getElementById('settingsError').classList.add('hidden');
 }
 
 function handleSupervisedToggle() {
@@ -134,21 +168,27 @@ function handleSupervisedToggle() {
   const passInput = document.getElementById('supervisedPassword');
   const errMsg = document.getElementById('settingsError');
 
+  const entered = passInput.value.trim();
+
   if (toggle.checked) {
-    // Enabling supervised
-    supervisedPassword = passInput.value.trim();
-    supervisedEnabled = true;
-    errMsg.classList.add('hidden');
+    if (!entered) {
+      toggle.checked = false;
+      errMsg.classList.remove('hidden');
+    } else {
+      supervisedEnabled = true;
+      supervisedPassword = entered;
+      errMsg.classList.add('hidden');
+      passInput.value = '';
+    }
   } else {
-    // Disabling supervised
-    const entered = passInput.value.trim();
-    if (entered !== supervisedPassword || supervisedPassword === '') {
+    if (entered !== supervisedPassword || !entered) {
       toggle.checked = true;
       errMsg.classList.remove('hidden');
     } else {
       supervisedEnabled = false;
       supervisedPassword = '';
       errMsg.classList.add('hidden');
+      passInput.value = '';
     }
   }
 }
